@@ -1,10 +1,25 @@
 package blot
 
 type Blot struct {
+	repo   Repo
+	sender Sender
 }
 
-func NewBlot() *Blot {
-	return &Blot{}
+type Sender interface {
+	Send(login string, typeOfMsg string, values map[string]string) error
+}
+
+type Repo interface {
+	AddNewUser(login, password string) (string, error)        // code
+	ConfirmUser(login, code string) (string, error)           // token
+	ResurrectToken(login string) (string, error)              // code
+	ConfirmResurrectToken(login, code string) (string, error) // token
+	AddLink(login, link string) error
+	AddNotify(login, duration, link string) error
+}
+
+func NewBlot(repo Repo, sender Sender) *Blot {
+	return &Blot{repo: repo, sender: sender}
 }
 
 type RegisterRequest struct {

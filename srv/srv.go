@@ -27,7 +27,7 @@ func NewSrv(b *blot.Blot, port string) {
 
 	e.POST("/register", func(c echo.Context) error {
 		var req blot.RegisterRequest
-		if err := GetRequest(c.Request().Body, &req); err != nil {
+		if err := getRequest(c.Request().Body, &req); err != nil {
 			return c.JSON(500, Response{Status: "Error::" + err.Error()})
 		}
 		if err := b.Register(req.Login, req.Password, req.RePassword); err != nil {
@@ -38,7 +38,7 @@ func NewSrv(b *blot.Blot, port string) {
 
 	e.POST("/confirm", func(c echo.Context) error {
 		var req blot.ConfirmRequest
-		if err := GetRequest(c.Request().Body, &req); err != nil {
+		if err := getRequest(c.Request().Body, &req); err != nil {
 			return c.JSON(500, Response{Status: "Error::" + err.Error()})
 		}
 		token, err := b.Confirm(req.Login, req.Code)
@@ -49,7 +49,7 @@ func NewSrv(b *blot.Blot, port string) {
 	})
 	e.POST("/resurrect_token", func(c echo.Context) error {
 		var req blot.ResurrectTokenRequest
-		if err := GetRequest(c.Request().Body, &req); err != nil {
+		if err := getRequest(c.Request().Body, &req); err != nil {
 			return c.JSON(500, Response{Status: "Error::" + err.Error()})
 		}
 		if err := b.ResurrectToken(req.Login); err != nil {
@@ -59,7 +59,7 @@ func NewSrv(b *blot.Blot, port string) {
 	})
 	e.POST("/confirm_resurrect", func(c echo.Context) error {
 		var req blot.ConfirmResurrectRequest
-		if err := GetRequest(c.Request().Body, &req); err != nil {
+		if err := getRequest(c.Request().Body, &req); err != nil {
 			return c.JSON(500, Response{Status: "Error::" + err.Error()})
 		}
 		token, err := b.ConfirmResurrect(req.Login, req.Code)
@@ -70,7 +70,7 @@ func NewSrv(b *blot.Blot, port string) {
 	})
 	e.POST("/add_link", func(c echo.Context) error {
 		var req blot.AddLinkRequest
-		if err := GetRequest(c.Request().Body, &req); err != nil {
+		if err := getRequest(c.Request().Body, &req); err != nil {
 			return c.JSON(500, Response{Status: "Error::" + err.Error()})
 		}
 		if err := b.AddLink(req.Link); err != nil {
@@ -80,13 +80,12 @@ func NewSrv(b *blot.Blot, port string) {
 	})
 	e.POST("/add_notify", func(c echo.Context) error {
 		var req blot.AddNotifyRequest
-		if err := GetRequest(c.Request().Body, &req); err != nil {
+		if err := getRequest(c.Request().Body, &req); err != nil {
 			return c.JSON(500, Response{Status: "Error::" + err.Error()})
 		}
 		if err := b.AddNotify(req.Link, req.Duration); err != nil {
 			return c.JSON(500, Response{Status: "Error::" + err.Error()})
 		}
-		return c.JSON(200, Response{Status: "Ok"})
 		return c.JSON(200, Response{Status: "Ok"})
 	})
 
@@ -95,7 +94,7 @@ func NewSrv(b *blot.Blot, port string) {
 	}
 }
 
-func GetRequest(r io.ReadCloser, ret any) error {
+func getRequest(r io.ReadCloser, ret any) error {
 	body, err := io.ReadAll(r)
 
 	if err != nil {

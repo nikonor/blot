@@ -29,9 +29,11 @@ type Link struct {
 
 const schema = `create table if not exists user (
     id text primary key not null,
+    status integer,
+    code text,
+    create_at text,
     login text unique,
-    token text,
-    password text
+    token text
 );
 
 create index if not exists idx_user_login on user (login);
@@ -75,7 +77,7 @@ func NewRepo(fName string) (*Repo, error) {
 	return &r, nil
 }
 
-func (r *Repo) AddNewUser(login, password string) (string, error) {
+func (r *Repo) GetToken(login string) (string, error) {
 	// TODO implement me
 	panic("implement me")
 }

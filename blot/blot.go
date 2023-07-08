@@ -10,10 +10,8 @@ type Sender interface {
 }
 
 type Repo interface {
-	AddNewUser(login, password string) (string, error)        // code
-	ConfirmUser(login, code string) (string, error)           // token
-	ResurrectToken(login string) (string, error)              // code
-	ConfirmResurrectToken(login, code string) (string, error) // token
+	GetToken(login string) (string, error)          // code
+	ConfirmUser(login, code string) (string, error) // token
 	AddLink(login, link string) error
 	AddNotify(login, duration, link string) error
 }
@@ -22,55 +20,57 @@ func NewBlot(repo Repo, sender Sender) *Blot {
 	return &Blot{repo: repo, sender: sender}
 }
 
-type RegisterRequest struct {
-	Login, Password, RePassword string
-}
-
-func (b Blot) Register(login, password, rePassword string) error {
+// GetToken
+// @Tags public
+// @Summary создание или обновление токена
+// @Accept json
+// @Produce json
+// @Param body body domain.GetTokenRequest true "Тело запроса"
+// @Success 200 {object} domain.GetTokenResponse
+// @Failure 500 {object} domain.ErrorResponse "Внутрення ошибка"
+// @Router /get_token [POST]
+func (b Blot) GetToken(login string) error {
 	// TODO implement me
 	panic("implement me")
 }
 
-type ConfirmRequest struct {
-	Login, Code string
-}
-
+// Confirm
+// @Tags public
+// @Summary подтверждение владения адресом
+// @Accept json
+// @Produce json
+// @Param body body domain.ConfirmRequest true "Тело запроса"
+// @Success 200
+// @Failure 500 {object} domain.ErrorResponse "Внутрення ошибка"
+// @Router /confirm [POST]
 func (b Blot) Confirm(login, code string) (string, error) {
 	// TODO implement me
 	panic("implement me")
 }
 
-type ResurrectTokenRequest struct {
-	Login string
-}
-
-func (b Blot) ResurrectToken(login string) error {
-	// TODO implement me
-	panic("implement me")
-}
-
-type ConfirmResurrectRequest struct {
-	Login, Code string
-}
-
-func (b Blot) ConfirmResurrect(login, code string) (string, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
-type AddLinkRequest struct {
-	Link string
-}
-
+// AddLink
+// @Tags public
+// @Summary добавление ссылки
+// @Accept json
+// @Produce json
+// @Param body body domain.AddLinkRequest true "Тело запроса"
+// @Success 200
+// @Failure 500 {object} domain.ErrorResponse "Внутрення ошибка"
+// @Router /add_link [POST]
 func (b Blot) AddLink(link string) error {
 	// TODO implement me
 	panic("implement me")
 }
 
-type AddNotifyRequest struct {
-	Link, Duration string
-}
-
+// AddNotify
+// @Tags public
+// @Summary подтверждение
+// @Accept json
+// @Produce json
+// @Param body body domain.AddNotifyRequest true "Тело запроса"
+// @Success 200
+// @Failure 500 {object} domain.ErrorResponse "Внутрення ошибка"
+// @Router /add_notify [POST]
 func (b Blot) AddNotify(link string, duration string) error {
 	// TODO implement me
 	panic("implement me")

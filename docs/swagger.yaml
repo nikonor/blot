@@ -1,0 +1,132 @@
+definitions:
+  domain.AddLinkRequest:
+    properties:
+      link:
+        type: string
+    type: object
+  domain.AddNotifyRequest:
+    properties:
+      link:
+        type: string
+    type: object
+  domain.ConfirmRequest:
+    properties:
+      login:
+        type: string
+    type: object
+  domain.ErrorResponse:
+    properties:
+      errorCode:
+        type: integer
+      errorMessage:
+        type: string
+    type: object
+  domain.GetTokenRequest:
+    properties:
+      login:
+        type: string
+    type: object
+  domain.GetTokenResponse:
+    properties:
+      code:
+        type: string
+    type: object
+info:
+  contact: {}
+  license: {}
+paths:
+  /add_link:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.AddLinkRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "500":
+          description: Внутрення ошибка
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: добавление ссылки
+      tags:
+      - public
+  /add_notify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.AddNotifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "500":
+          description: Внутрення ошибка
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: подтверждение
+      tags:
+      - public
+  /confirm:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ConfirmRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "500":
+          description: Внутрення ошибка
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: подтверждение владения адресом
+      tags:
+      - public
+  /get_token:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.GetTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetTokenResponse'
+        "500":
+          description: Внутрення ошибка
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: создание или обновление токена
+      tags:
+      - public
+swagger: "2.0"

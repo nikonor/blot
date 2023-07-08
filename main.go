@@ -9,6 +9,8 @@ import (
 	"github.com/nikonor/blot/srv"
 )
 
+//go:generate swag init --parseDependency
+//go:generate rm -f docs/swagger.json docs/docs.go
 func main() {
 	fmt.Printf("Start")
 	defer func() {

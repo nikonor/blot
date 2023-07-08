@@ -8,6 +8,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const (
+	StatusNotConfirmed = 0
+	StatusConfirmed    = 1
+)
+
 type Repo struct {
 	sync.Mutex
 	db    *sql.DB
@@ -17,7 +22,9 @@ type Repo struct {
 type User struct {
 	Login    string
 	Token    *string
-	Password string
+	Code     *string
+	Status   int
+	CreateAt time.Time
 }
 
 type Link struct {
@@ -29,11 +36,11 @@ type Link struct {
 
 const schema = `create table if not exists user (
     id text primary key not null,
+    login text unique,
+    token text,
     status integer,
     code text,
-    create_at text,
-    login text unique,
-    token text
+    create_at text
 );
 
 create index if not exists idx_user_login on user (login);
@@ -78,31 +85,63 @@ func NewRepo(fName string) (*Repo, error) {
 }
 
 func (r *Repo) GetToken(login string) (string, error) {
-	// TODO implement me
-	panic("implement me")
+	upsert := `
+insert into user (login, token, status, code, create_at)
+values (?,?,?,?,?)
+on conflict do
+    update set token=?,status=?,code=?,create_at=?;
+`
+	code := genString(6)
+	token := genToken()
+	at := time.Now().String()
+
+	if _, err := r.db.Exec(upsert, login, token, StatusNotConfirmed, code, at, token, StatusNotConfirmed,
+		code, at); err != nil {
+		return "", err
+	}
+
+	return code, nil
 }
 
 func (r *Repo) ConfirmUser(login, code string) (string, error) {
-	// TODO implement me
-	panic("implement me")
-}
+	upsert := `
+update user
+set status=?
+where login=? and code=?;
 
-func (r *Repo) ResurrectToken(login string) (string, error) {
-	// TODO implement me
-	panic("implement me")
-}
+`
+	if _, err := r.db.Exec(upsert, StatusConfirmed, login, code); err != nil {
+		return "", err
+	}
 
-func (r *Repo) ConfirmResurrectToken(login, code string) (string, error) {
-	// TODO implement me
-	panic("implement me")
+	return code, nil
 }
 
 func (r *Repo) AddLink(login, link string) error {
-	// TODO implement me
-	panic("implement me")
+	upsert := "insert into link (user_login, link, create_at) values (?,?,?)"
+	at := time.Now().String()
+
+	if _, err := r.db.Exec(upsert, login, link, at); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *Repo) AddNotify(login, duration, link string) error {
-	// TODO implement me
-	panic("implement me")
+	upsert := "insert into link (user_login, link, create_at,notify_at) values (?,?,?,?)"
+
+	now := time.Now()
+	at := now.String()
+	dur, err := time.ParseDuration(duration)
+	if err != nil {
+		return err
+	}
+	notifyAt := now.Add(dur).String()
+
+	if _, err := r.db.Exec(upsert, login, link, at, notifyAt); err != nil {
+		return err
+	}
+
+	return nil
 }

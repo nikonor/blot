@@ -1,5 +1,9 @@
 package sender
 
+import (
+	"fmt"
+)
+
 type Sender struct {
 	ch       chan Mail
 	doneChan chan struct{}
@@ -37,7 +41,7 @@ func (s Sender) bg() {
 		case <-s.doneChan:
 			return
 		case m := <-s.ch:
-			_ = m
+			fmt.Printf("send %#v\n", m)
 			// TODO: send email (go)
 		}
 	}

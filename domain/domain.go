@@ -1,5 +1,9 @@
 package domain
 
+const (
+	AuthTokenName = "X-Blot-Auth-Token"
+)
+
 type ErrorResponse struct {
 	ErrorCode    int
 	ErrorMessage string

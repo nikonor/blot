@@ -2,6 +2,8 @@ package repo
 
 import (
 	"database/sql"
+	"errors"
+	"strconv"
 	"sync"
 	"time"
 
@@ -28,17 +30,17 @@ type User struct {
 }
 
 type Link struct {
-	URL      string
+	Link     string
 	Note     string
 	CreateAt time.Time
 	NotifyAt *time.Time
 }
 
 const schema = `create table if not exists user (
-    id text primary key not null,
+    id text primary key,
     login text unique,
     token text,
-    status integer,
+    status integer not null default 0,
     code text,
     create_at text
 );
@@ -46,9 +48,9 @@ const schema = `create table if not exists user (
 create index if not exists idx_user_login on user (login);
 
 create table if not exists link (
-    id text primary key not null,
-    user_id int not null references user(id),
+    user_login int not null references user(login),
     link text not null,
+    archive int not null default 0,
     create_at text,
     notify_at text
 );
@@ -104,44 +106,81 @@ on conflict do
 }
 
 func (r *Repo) ConfirmUser(login, code string) (string, error) {
-	upsert := `
+	var (
+		upsert = `
 update user
 set status=?
-where login=? and code=?;
-
+where login=? and code=? and status=?
+returning token
 `
-	if _, err := r.db.Exec(upsert, StatusConfirmed, login, code); err != nil {
+		token string
+	)
+
+	if err := r.db.QueryRow(upsert, StatusConfirmed, login, code, StatusNotConfirmed).Scan(&token); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", errors.New("invalid code or confirmation has already been confirmed")
+		}
 		return "", err
 	}
 
-	return code, nil
+	return token, nil
 }
 
-func (r *Repo) AddLink(login, link string) error {
+func (r *Repo) AddLink(token, link string) error {
 	upsert := "insert into link (user_login, link, create_at) values (?,?,?)"
 	at := time.Now().String()
 
-	if _, err := r.db.Exec(upsert, login, link, at); err != nil {
+	if _, err := r.db.Exec(upsert, token, link, at); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r *Repo) AddNotify(login, duration, link string) error {
+func (r *Repo) AddNotify(token, duration, link string) error {
 	upsert := "insert into link (user_login, link, create_at,notify_at) values (?,?,?,?)"
 
 	now := time.Now()
 	at := now.String()
-	dur, err := time.ParseDuration(duration)
+	notifyAt, err := getEventDate(now, duration)
 	if err != nil {
 		return err
 	}
-	notifyAt := now.Add(dur).String()
 
-	if _, err := r.db.Exec(upsert, login, link, at, notifyAt); err != nil {
+	if _, err := r.db.Exec(upsert, token, link, at, notifyAt); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// getEventDate - разбираем период
+//
+//	duration = "<число>[m|h|d|y]"
+func getEventDate(now time.Time, duration string) (time.Time, error) {
+	timeDim := time.Second
+	switch duration[len(duration)-1] {
+	case 'm':
+		timeDim = time.Minute
+	case 'h':
+		timeDim = time.Hour
+	case 'd':
+		timeDim = 24 * time.Hour
+	case 'y':
+		dur, err := strconv.ParseInt(duration[:len(duration)-1], 10, 64)
+		if err != nil {
+			return now, err
+		}
+		return time.Date(now.Year()+int(dur), now.Month(), now.Day(), now.Hour(), now.Minute(),
+			now.Second(), 0, now.Location()), nil
+	default:
+		return now, errors.New("invalid dimension")
+	}
+
+	dur, err := strconv.ParseInt(duration[:len(duration)-1], 10, 64)
+	if err != nil {
+		return now, err
+	}
+
+	return now.Add(time.Duration(dur) * timeDim), nil
 }

@@ -11,8 +11,8 @@ import (
 type Blot interface {
 	GetToken(login string) error
 	Confirm(login, code string) (string, error)
-	AddLink(link string) error
-	AddNotify(link string, duration string) error
+	AddLink(token string, link string) error
+	AddNotify(token string, link string, duration string) error
 }
 
 type Response struct {
@@ -50,7 +50,7 @@ func NewSrv(b Blot, port string) {
 		if err := getRequest(c.Request().Body, &req); err != nil {
 			return c.JSON(500, domain.ErrorResponse{ErrorCode: 500, ErrorMessage: err.Error()})
 		}
-		if err := b.AddLink(req.Link); err != nil {
+		if err := b.AddLink(c.Request().Header.Get(domain.AuthTokenName), req.Link); err != nil {
 			return c.JSON(500, domain.ErrorResponse{ErrorCode: 500, ErrorMessage: err.Error()})
 		}
 		return c.JSON(200, Response{Status: "Ok"})
@@ -60,11 +60,12 @@ func NewSrv(b Blot, port string) {
 		if err := getRequest(c.Request().Body, &req); err != nil {
 			return c.JSON(500, domain.ErrorResponse{ErrorCode: 500, ErrorMessage: err.Error()})
 		}
-		if err := b.AddNotify(req.Link, req.Duration); err != nil {
+		if err := b.AddNotify(c.Request().Header.Get(domain.AuthTokenName), req.Link, req.Duration); err != nil {
 			return c.JSON(500, domain.ErrorResponse{ErrorCode: 500, ErrorMessage: err.Error()})
 		}
 		return c.JSON(200, Response{Status: "Ok"})
 	})
+	// TODO: список сохранений
 
 	if err := e.Start(port); err != nil {
 		panic(err.Error())

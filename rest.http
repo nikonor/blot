@@ -1,0 +1,37 @@
+### get token
+POST http://localhost:8888/get_token
+Content-Type: application/json
+
+{
+    "login": "nikonor@nikonor.ru"
+}
+### confirm
+POST http://localhost:8888/confirm
+Content-Type: application/json
+
+{
+    "login": "nikonor@nikonor.ru",
+    "code": "Uqv4yc"
+}
+
+> {%
+    client.global.set("token", response.body.token);
+%}
+### add_link
+POST http://localhost:8888/add_link
+Content-Type: application/json
+X-Blot-Auth-Token: {{token}}
+
+{
+    "link": "https://some.link.{{$random.alphanumeric(5)}}"
+}
+### add_notify
+POST http://localhost:8888/add_notify
+Content-Type: application/json
+X-Blot-Auth-Token: {{token}}
+
+{
+    "link": "https://some.link.{{$random.alphanumeric(5)}}",
+    "duration": "1y"
+}
+###
